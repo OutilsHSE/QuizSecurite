@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classement — Quiz Sécurité</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --nuit:#101822; --nuit2:#1A2532; --jaune:#FFD400;
+    --orange:#FF6B35; --vert:#3DDC84; --blanc:#F5F7FA; --gris:#8A97A6;
+    --argent:#C8D2DC; --bronze:#D89A6A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:'Archivo',system-ui,sans-serif;
+    background:var(--nuit);color:var(--blanc);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .rubalise{height:16px;flex:none;
+    background:repeating-linear-gradient(-45deg,var(--jaune) 0 16px,var(--nuit) 16px 32px)}
+  .entete{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:22px 40px 8px;
+  }
+  h1{font-weight:900;font-size:40px;text-transform:uppercase;line-height:1}
+  .entete small{display:block;color:var(--jaune);font-size:15px;font-weight:700;margin-bottom:4px}
+  .fleche{background:var(--nuit2);border:2px solid #2A3948;border-radius:10px;color:var(--blanc);
+    font-size:18px;font-weight:900;padding:8px 12px;cursor:pointer;font-family:inherit}
+  .fleche:hover{border-color:var(--jaune)}
+  .groupe-badge{background:var(--jaune);color:var(--nuit);font-weight:900;
+    font-size:22px;padding:8px 22px;border-radius:999px}
+  .contenu{flex:1;display:flex;gap:36px;padding:16px 40px 32px;min-height:0}
+
+  /* Classement */
+  .classement{flex:1;display:flex;flex-direction:column;min-width:0}
+  .podium{display:flex;gap:14px;margin-bottom:16px}
+  .marche{flex:1;background:var(--nuit2);border-radius:14px;padding:16px;text-align:center;border-top:5px solid var(--gris)}
+  .marche .rang{font-weight:900;font-size:26px}
+  .marche .nom{font-weight:700;font-size:24px;margin:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .marche .pts{font-weight:900;font-size:30px;color:var(--jaune)}
+  .marche.or{border-top-color:var(--jaune);transform:scale(1.05)}
+  .marche.or .rang{color:var(--jaune)}
+  .marche.argent{border-top-color:var(--argent)} .marche.argent .rang{color:var(--argent)}
+  .marche.bronze{border-top-color:var(--bronze)} .marche.bronze .rang{color:var(--bronze)}
+  .liste{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+  .ligne{display:flex;align-items:center;gap:14px;background:var(--nuit2);
+    border-radius:10px;padding:11px 18px;font-size:22px}
+  .ligne .pos{font-weight:900;color:var(--gris);width:38px}
+  .ligne .nom{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ligne .avancee{color:var(--gris);font-size:14px;font-weight:500}
+  .ligne .pts{font-weight:900;color:var(--jaune);min-width:90px;text-align:right}
+  .prog{display:block;width:150px;height:10px;background:#0C121A;border-radius:99px;overflow:hidden;flex:none}
+  .prog i{display:block;height:100%;background:var(--jaune);border-radius:99px;transition:width .5s}
+  .ligne.finie .prog i{background:var(--vert)}
+  .ligne .avancee{min-width:96px;text-align:right}
+  .ligne.finie .avancee{color:var(--vert);font-weight:900}
+  .marche .prog{width:80%;margin:8px auto 3px}
+  .marche .etat{font-size:13px;font-weight:700;color:var(--gris)}
+  .marche.finie .prog i{background:var(--vert)}
+  .marche.finie .etat{color:var(--vert)}
+  .fini-badge{display:none;background:var(--nuit2);border:2px solid var(--vert);color:var(--vert);
+    font-weight:900;font-size:18px;padding:8px 16px;border-radius:999px;white-space:nowrap}
+  .vide{color:var(--gris);font-size:20px;font-weight:500;text-align:center;margin-top:60px;line-height:1.6}
+
+  /* Panneau QR */
+  .panneau{width:420px;flex:none;display:flex;flex-direction:column;align-items:center;
+    background:var(--nuit2);border-radius:16px;padding:26px 22px;gap:14px;align-self:flex-start}
+  .panneau .titre{font-weight:900;font-size:24px;text-transform:uppercase;text-align:center;line-height:1.2}
+  #qr{background:#fff;padding:12px;border-radius:10px}
+  .lien{font-size:15px;color:var(--gris);word-break:break-all;text-align:center;font-weight:500}
+  .participants{font-weight:700;color:var(--vert);font-size:21px}
+  .maj{font-size:12px;color:var(--gris)}
+</style>
+</head>
+<body>
+<div class="rubalise"></div>
+<div class="entete">
+  <h1><small>Quiz sécurité · CDES × FOCAST</small>Classement en direct</h1>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="fini-badge" id="fini-badge"></div>
+    <button class="fleche" onclick="changerSession(-1)">◀</button>
+    <div class="groupe-badge" id="badge">Session 1</div>
+    <button class="fleche" onclick="changerSession(1)">▶</button>
+  </div>
+</div>
+<div class="contenu">
+  <div class="classement">
+    <div class="podium" id="podium" style="display:none">
+      <div class="marche argent" id="m2"><div class="rang">2</div><div class="nom"></div><div class="pts"></div><div class="prog"><i></i></div><div class="etat"></div></div>
+      <div class="marche or" id="m1"><div class="rang">1</div><div class="nom"></div><div class="pts"></div><div class="prog"><i></i></div><div class="etat"></div></div>
+      <div class="marche bronze" id="m3"><div class="rang">3</div><div class="nom"></div><div class="pts"></div><div class="prog"><i></i></div><div class="etat"></div></div>
+    </div>
+    <div class="liste" id="liste">
+      <div class="vide">En attente des premières équipes…<br>Un téléphone par équipe : scannez le QR code !</div>
+    </div>
+  </div>
+  <div class="panneau">
+    <div class="titre">Un téléphone par équipe<br>Scannez pour jouer</div>
+    <div id="qr"></div>
+    <div class="lien" id="lien"></div>
+    <div class="participants" id="participants"></div>
+    <div class="maj" id="maj"></div>
+  </div>
+</div>
+
+<script>
+/* ============ CONFIGURATION ============ */
+// Colle ici la même URL Apps Script que dans quiz.html
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbynDmGFFd-BlKbR2i9zK4ZyBlB0uU-FdJTWVMquIwoX0h57EQE33DAQl29VS3yng-A/exec";
+const NB_QUESTIONS = 33; // 28 questions + puzzle + 4 chasses
+const INTERVALLE = 5000; // rafraîchissement (ms)
+/* ======================================= */
+
+const params = new URLSearchParams(location.search);
+const GROUPE = params.get("groupe") || "1";
+document.getElementById("badge").textContent = "Session " + GROUPE;
+function changerSession(delta){
+  const n = Math.max(1, (parseInt(GROUPE)||1) + delta);
+  const u = new URL(location.href); u.searchParams.set("groupe", n);
+  location.href = u.toString();
+}
+
+// QR code vers la page élève de la même session (intégré pour les sessions 1 à 9, sans dépendance réseau)
+const QR_INTEGRES = {"1":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQAAAADDfFG0AAAB/ElEQVR4nO2awY7DMAhE36zy/788ewAcZ9tDTzbVmh7qOiN1hAAPODIf2M8noIM6qBe7QLGywMggMujqSVv2W/wV3hFWrIVB5n7Slv0efyHSRYowE84giydt2W9FGRljg8NjPXi1RclYEVhG9nvUel6dUBdkmUIgZxFTln7v4tUVxQgjv/kUpCv79SjNejWrlhF+POjKfgtKCJCIOm8TwaZI0aMnHmYbR1qaPB7h/mGffJzsIqJKWPJQ+BFjkMuu7PeghONgHBmY7rJS9XdmvxYV/ZCMHPo+taqJnV28GqMkZdopy5ZUh0CK/Mbsd6DsUqtWpGMoVjtjrDX7pSicyvT+CkHhqmH2OR//oCIXZeGo8bFR07Dm7FejjFTtzxiBSTDax87s16OiC0oNIY2hF1nUjr6f7GJSp3k4Orwn1dSwLftN/bY8hNe9K4+xa1v2m/S9leckUiZkZWgMqDuzX44SYEs5WAWq7ntCrefVFeVxhXbPdKhjU0dPPOyq+zOm2aHiyoOa5bdlv8VflYWKuU7eqcHkxq7s9/RDuaiK5dqvn6cfuu3lfns026laffTEbNP9dukwKiGzOdrC6ztQ2RqRzaNr5LqbV0vUeMUkXwiINknbebVCyemne8A6miGA0z8+7WK85pWz1OGoarePnpjscY295B8P6j+hfgFgnwUqBKQBJAAAAABJRU5ErkJggg==","2":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQAAAADDfFG0AAAB90lEQVR4nO2Z227DMAxDD4f8/y9zD5Icp9uAPtkqZmUdvIbACEEXSpZ5w77eAR3UQf2wCxQnI4wMIoNuvOnKfou/wjsKVzm9JCPXm7bs9/gLhc9EBpcQ9RXewusjUAawZIzUh1dP1F20pFHCGvBqhbqA2zcyYGRVsO3i1RWFy1n+5SlIV/Zb4mvOvGyPQ0hs49UYFc4R4ChccrRGZSlrzX4x6gILsDXST3cBO3ri1WyyVNUHbIzjB3zq1205/8iZkPiehpypeuah20JPKGdGhcNSWMTvU79m00OXVmyJDLmobW3Zb+qP8SA556CUrUOzNma/HmXM1B0RyC634bOfmOxKzWDhGoQ0krLysyv7PXoiFYVDO4wJqY5HT7yijCxHFopaFKpEf3P2S1HZBV1/1MLQ9Q7r9McHyjlmS5ZGX8xTFLDG7NejcvssG6dyVU6VpNxvzH4x6gJcmms0xtJfRGFry35XvY/IIt3j0rA47z5as1+KuhgbQk0r1czHupHsyn7P/iuPyhCjVogVZ6c/3jbdbzsrPVW7sp6d+HpB2fZ89TjmIJdo7cx+LWq+304JkYkZXTNCrSv7vSjh2nvF5svAue/4E+Xa4MS6YlrofwL7NajH/bZj8xXPrSj6st+zz8kDWfZjt+P68uxzZnvu71f8x4P6T6hv36kCJvfExuMAAAAASUVORK5CYII=","3":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQAAAADDfFG0AAACAElEQVR4nO1aQWoEMQyTyvz/y+pBcnaG7sKeYkOTQ8lsBBXCdhQnFL4YP9+ADuqg/owLoGeiKFAAkaCrlbHsW/SyOhGp5GJ9AZzLvkcvMDqBgGjFrJ9XxrJvRUkQBAmQFZvBayyKoOjAEii9R+3nNQl1ASlTzkIRSDZStTKWfY9elXiiUPuk57UylX2LXpV3LvlV8wGtlbHsW1C0TE5ESIK1YrbM4yfuQ94WU929PXrmDwnSVPY9/l50EopKmXchA5DpVPZdKAlizkLgkkuka9ls9ptRopg9sWpYCj8rTQez34+iqErGqMXaBOIoBrNvQNlqeUOk09GONTLOZr8XdcEJme4EZfuVUiZrN5Z9E8pWnmJFln+obthw9ltR6eeIDi3a1VfdKoM/lX3X/rjOjgBW08sz6vj726j+6sOhpn6xuoZj2e9H0T0clcN/qVcfPPX+iRIcSz5lu4otl+9mxWD2m1FX3XS4U+i/SK9Qp//1BiU3oRNXUPyEUsCOn3gMVdd5NXDWrUeWdfo5r3FFKACJr9VfXQ3Xc197G+sayMftJV4izUE3lX2f/7KzZwx+GQzEyE5l33YewvIOOXfnZ5z+12cUQXlHfN0P8byf+IQq74U8CMhtZDuvUag8YVpNw3rStKzqOT8+xu1+OwfG+213PW2ayr4lvjb/x4P6T6hfKiIINvrDCPIAAAAASUVORK5CYII=","4":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQAAAADDfFG0AAAB7ElEQVR4nO2ZzY4DMQiDP6/m/V/ZewDyo156mrDacGgzjaVaiDiGkfkifr4BXdRFfcQDipUBGVkWWHjudGV/JF8YQCAsWwiDkcdOV/Zn8oXARJqIuhLOJ3yE159BGRTl1YtXS5SitqQtW+d59UE9kAJGHkGDXNrlU7y6oh6YtSQrj2Oua6cr+yP5Go51nsJcjZ2u7N9HheOC6SrCeaUH496PezxgmXn2LDJtziddv7qhKl0h9lVTMnKmsjP7l1Fy6r2FlWeRSmJlryv7M/UFma7xLVwezL71tUQZiBD48UuUWarara8NlelyJCdP4Dae6Mz+ZZSyq06vlWVWDThcP/GBkrDDaw3bNcc6vvOcNR4oga+ywpoeQ/c8brE0iUOxSvDzsrz5WqLmq+utOC1Gzlzbsj+CspDKdDnm0gx74WO8uqIiM556Fe22QHUPNGb/Mmq+EcqphBdzAdl3d2X/Pgobh29wPC1z1vpwV/Zn9H6a+Wqyx62ZO13ZH/L3uQTwOJ1itpVd2R+pr2oTo7hKykQl8+rXEsv7beVV6RpLzx6yK/tDek+kKZZmLGv/6v2IZ32I92kxKqxBxfVfW2z58nhVJKoZuvOcT5Q93gVRks+y6s3+VVQ4VAjR8pQy14/46teMxX+99I8X9Z9Qv5P3BTeLNwN8AAAAAElFTkSuQmCC","5":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQAAAADDfFG0AAAB/0lEQVR4nO1a0W7jMAwjD/n/X+YeSCkebgP2ZGuYVaBNGwIlCEmm5VD4Qfz7CeiiLuq/eAD6SgQECiCSdHVnLPsjelmdiFRysb4BnMv+jF5g6USnGaHo5ztj2R9FCRAECZAVm8FrLooAnVgCpW9Q+3kNQj1A2pTrUQRSjVTdGct+PwqdRvriVZCp7I/k1ytY2r6TbBFsLPsjKIIAmDfJusndzHcHs9+MgiSoy1Jdn8oX6dbjZ1Tyq3oWpZgKAPH4g9kfQDmJmL0QfAEBYhbMyewPoESAEkimEAnrluoczX47ivFc1cpAVpHG5E9mvxfl/i53/FoZc2X9br9f4wEgZoftwQTfViYvA2PZn+pfsPVivKo8mqhp2HD2W1E1z4FYIuntW2Xwp7I/ghJVb2UolgErdf39Eo8/VDNVgd2/WFPDsez3oyh3eI9WFX2oJFZUnMr+TD0CtR1qh98u3wvAYPb7UaQo0W3LoxyvAHee8yVKXYc2+oyHTQO7fmKN5x1yVQGm8bsoPaeYyv6IXq2SJ/g9X82wFbzntUss83vU7jG/94by7h871vNtihBVx0OZ6F8/scZyvh2PD1RBepE8w+s3oKiaeb3nQ7zPT3yHovp5HKQyK9N+AftNKCo2gv2UTm+GAODuHz/Hg37MK661hart9vUTS7RH3faPF/WXUB/HLAkkN0xKYwAAAABJRU5ErkJggg==","6":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQAAAADDfFG0AAAB40lEQVR4nO1Z0Y7DMAizT/3/X/Y9GBK226Q9NUwHnbpIsVRkEcCEwgf28wloUIP6YxdArwRCoAAigm7tdPX+CF9mhyAQdHlB5U5b78/wBZozEQ4uc6e909X7DiiRgkDe9sVvQl17KQcTfSI1fL2yC0Cmd4gQIDCoWztdvb8fBS2yXjwJ6er9kfgqHWuWx9VIHPOrMcrkEIBE92AujSRA8pRfLVEZUQJFPaymn3iD0mZGAAnILQUQ787e34uiwwlBGKNG5haA0UPVLgBxDhlspS6K98RXNar8R6Q51hjRNvH1hHI8ESTo9GU1mXMKtfb+fpSltmrPRSlpg2Y+UeyKRO80z5K8LCR1yK+uqJXSM1+plEUv5zxWk0IoStaQWzoqfqMft615juItUqtcppDs6v2p+igfPLdgzlrRvprHxt4fQAlMTURYca95oetAZ+/vRTGmg8jyuBsJH0Zx+HqBUpBmpe1Ii3M6/Vex1I+l2bLty6KJr2LcHK0LDuWoAjnJ7+r9qf4eiKOINTMEksyJryeUpLj14JqFJVOc++0Hq/fb1kN7HhZlc/h6h1K09zE59AR/5oXvUNHem7YQkTOfeLSn+21Rop/dUfT1/sh8IhdQhpSQBSDWXb0/2n/d9MVB/SfUL1lJ9ymsVZ0/AAAAAElFTkSuQmCC","7":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQAAAADDfFG0AAAB9ElEQVR4nO2ZzY4DIQyDP6/6/q/sPSQB9ufQ0ySrhR7KFEu1IgeMR+aN8fEO6KIu6sd4gWJmWUYGkaKrlbHsW+oV1RHICFkgMPJamcq+CSUJwIKlrvjKldHsu1AW2BjZXs3Yz2sU6rWnAmELC/Pl3JzKvqleUZtqR4SV/eguXlNRuITkXz4Fmcq+RV+7YGEqar5XxrLv0VdJLFVlnLKL6dXXMV7ESRh2S9u8ctqKqeyfR8mEPc02lLf/0vp1Kvuu+5BTUWlboz/jdnT96k+UJeT0D84rpEN8buQ1EKUsC6A4HI8HV3dOZd+Cii1eGVAgQIrt32rkNRVlQ8USSm+Rv5GnwWD2D6PksAzlKUpjpay7f30dWhZCeS6ukLB2NM9l33U+grJYKpsvKbrUtx+Pod2LK031Xoylseyb/P3ypVmydBHbUUxl3+fva+9a96E4KnNTm8q+B2UjKzxX2K+sGIT3H82+A5UysmRcVmLXbzj7p1FS1EblItZqnpaj2T+LOvLVTO13vurS2Fj2Xfs9RDRBBoTZn0tpU9m31Gv5rh20ZhQWArt+4hgvWB5VOHy+VbFrNutU9s0oh89H6yHvRX+C/dMoW1K9JMpo9eZf38bxfjvEVSnrvk628JqKqvdprGujjnyam399G4c5fegfL+o/oT4Bl5nyPmJwTwcAAAAASUVORK5CYII=","8":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQAAAADDfFG0AAAB7klEQVR4nO1aS64CMQyzUe9/Zb9FnKYjQI9Vm0UDGgbGCyvKx0mh8IO9fgFd1EW92QAYdwIhUADhoJtPurI/4q/wDkHA7oobKp+0ZX/GXyAwyxgh+071pCv7syjFmxQEsg2vpig5JQGS0BfUfl6tUAOoZJSvVGaoTvHqioLKWe+vhHRlfyS+lszL9jiFxDFejVHhnOiIDA0WrZEuZa3Zb0YN2FXiTD9WAbt64gPK4RTBBRJQSArA187s96IoVChBhGoaklP1zkNlAxCVkWSfReH39cbXaiM+BMdTaHyCohB17AivxiiKEVrRHHN0VO4p1Jr9fpSg7I4iJAKU0m3Q3U8sNqwZXObDYVHwWZuwruzPzEPOOslDkeqJAOjOQw+UstpnaHlRyKkxOrPfjBpWDdNPjCFyNsxDvBqjonQRyN6Y36eU7cx+PyqSzgU/PmnZms5szH4zaiAVff3Gqb9g3dqV/SlUNkUxJm1YwcpDUm/2O1EDKfDFZaU6gy5OJLuyPzNvz8V9nDwikzPj7O4nypbz7am6snZ5S3Hja7HlfNv7wef8SNz4Wm093/ZBmq9ihVpX9ufmx9khcyuRoh/3PO0bSnaeVM3y7iee9jzfpigxXqUo+rI/k4++WVITUv43QHefsxr1P6Yv+4vqjvoDb579IqV3fywAAAAASUVORK5CYII=","9":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASgAAAEoAQAAAADDfFG0AAAB70lEQVR4nO1aS4pDMQyTht7/ypqFbCdDW+gqdpm4pSQvggrjfx6FD+TnE9BFXdSTPAB6JYoCBRBhdHkyln2LvqwdQhSQ6qKwTsay79EXGHoiANEas5H5ZCz7VpQgSZAAWWMzeE1GkTYsgdJb1HleY1APIMIU7IgEwhsjnPXwmopCmZFefBIylX2LfS2FAXCIp/flkVPZt6CcF5nFlgTriuGit57YRYrM6F35Zzz2dyr7JhQBMGMWq6hAns1mfxRFAaCcGJXLDFyMUmwq+x7U0hEZjkgAtKn18RqKontH16nWFjMJRJE/mP1hVMZ7LG1l6eXuCDfe70KBYVzRYWv13w5eLbxGo3ISUb2QH+Q0bDj7o6ic5ziCLR05bmWenMq+Kz9aTXKoz6EXXN/r1vebPNaEMIWijYwZ08ay74r3K7KzflkV7Fz2LaioHkD33ERVqwBsfoPZn0eRkCv6sDVEBrjznJco1RUaBXtmGBwVmXIw+8OovH/0iCJckIpiLGb5Y9n35MdYsjSnqr5i0jOVfVP/6MWK/PE8t7d/XLLfb6PG9rFxOLv+uMl2v42VElUx7c6/3qNyZMhlaFGNfQP74yiqxquoiavu/P6PxCtM2QjlPutW3P7xGUWSedO4XjOpS6Lrj5vUVdCxf7yo/4T6BcUa/xR2jgOWAAAAAElFTkSuQmCC"};
+const urlQuiz = location.href.replace(/scores\.html/,"quiz.html");
+document.getElementById("lien").textContent = urlQuiz;
+if(QR_INTEGRES[GROUPE]){
+  const im = document.createElement("img"); im.src = QR_INTEGRES[GROUPE]; im.width = 340; im.height = 340;
+  im.style.imageRendering = "pixelated"; document.getElementById("qr").appendChild(im);
+} else if(typeof QRCode !== "undefined"){
+  new QRCode(document.getElementById("qr"), {text:urlQuiz, width:340, height:340, correctLevel:QRCode.CorrectLevel.M});
+}
+
+async function rafraichir(){
+  if(SCRIPT_URL.indexOf("http") !== 0) return;
+  try{
+    const rep = await fetch(SCRIPT_URL + "?groupe=" + encodeURIComponent(GROUPE) + "&t=" + Date.now());
+    const data = await rep.json();
+    afficher(data.joueurs || []);
+    document.getElementById("maj").textContent = "Mis à jour à " + new Date().toLocaleTimeString("fr-FR");
+  }catch(e){ /* réessaie au prochain tour */ }
+}
+
+function afficher(joueurs){
+  joueurs.sort((a,b)=>b.total-a.total || b.repondu-a.repondu);
+  document.getElementById("participants").textContent =
+    joueurs.length + " équipe" + (joueurs.length>1?"s":"") + " en jeu";
+  const finies = joueurs.filter(j=>j.fini).length;
+  const fb = document.getElementById("fini-badge");
+  fb.style.display = joueurs.length ? "block" : "none";
+  fb.textContent = "✔ Ont terminé : " + finies + " / " + joueurs.length;
+  fb.style.borderColor = fb.style.color = (finies < joueurs.length ? "var(--orange)" : "var(--vert)");
+
+  const podium = document.getElementById("podium");
+  const liste = document.getElementById("liste");
+
+  if(joueurs.length === 0){
+    podium.style.display = "none";
+    liste.innerHTML = '<div class="vide">En attente des premières équipes…<br>Un téléphone par équipe : scannez le QR code !</div>';
+    return;
+  }
+
+  // Podium (top 3)
+  podium.style.display = "flex";
+  [["m1",0],["m2",1],["m3",2]].forEach(([id,i])=>{
+    const m = document.getElementById(id);
+    if(joueurs[i]){
+      const jp = joueurs[i];
+      m.style.visibility = "visible";
+      m.classList.toggle("finie", !!jp.fini);
+      m.querySelector(".nom").textContent = jp.prenom;
+      m.querySelector(".pts").innerHTML = jp.total + " pts" +
+        (jp.pct != null ? '<br><span style="font-size:15px;color:var(--gris)">' + jp.pct + " % de réussite</span>" : "");
+      m.querySelector(".prog i").style.width = Math.min(100, Math.round((jp.repondu||0)/NB_QUESTIONS*100)) + "%";
+      m.querySelector(".etat").textContent = jp.fini ? "Terminé ✔" : "Étape " + (jp.repondu||0) + " / " + NB_QUESTIONS;
+    } else m.style.visibility = "hidden";
+  });
+
+  // Reste du classement
+  liste.innerHTML = "";
+  joueurs.slice(3).forEach((j,i)=>{
+    const d = document.createElement("div");
+    d.className = "ligne" + (j.fini ? " finie" : "");
+    const pctAv = Math.min(100, Math.round((j.repondu||0)/NB_QUESTIONS*100));
+    d.innerHTML = '<span class="pos">'+(i+4)+'</span>'+
+      '<span class="nom"></span>'+
+      '<span class="prog"><i style="width:'+pctAv+'%"></i></span>'+
+      '<span class="avancee">'+ (j.fini ? "Terminé ✔" : "Étape " + j.repondu + " / " + NB_QUESTIONS) +'</span>'+
+      '<span class="pts">'+j.total+' pts' + (j.pct != null ? ' · '+j.pct+' %' : '') + '</span>';
+    d.querySelector(".nom").textContent = j.prenom;
+    liste.appendChild(d);
+  });
+}
+
+rafraichir();
+setInterval(rafraichir, INTERVALLE);
+</script>
+</body>
+</html>
