@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Sécurité CDES × FOCAST — Espace animateur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--nuit:#101822;--nuit2:#1A2532;--jaune:#FFD400;--orange:#FF6B35;--vert:#3DDC84;--blanc:#F5F7FA;--gris:#8A97A6;--cdes:#4FC3F7}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Archivo',system-ui,sans-serif;background:var(--nuit);color:var(--blanc);min-height:100vh;display:flex;flex-direction:column}
+  .rubalise{height:14px;background:repeating-linear-gradient(-45deg,var(--jaune) 0 16px,var(--nuit) 16px 32px)}
+  main{flex:1;max-width:760px;width:100%;margin:0 auto;padding:36px 24px}
+  .sur{color:var(--jaune);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  h1{font-weight:900;font-size:34px;line-height:1.05;text-transform:uppercase;margin:6px 0 22px}
+  .bloc{background:var(--nuit2);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+  .bloc h2{font-weight:900;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--gris);margin-bottom:12px}
+  .sessions{display:flex;gap:10px;flex-wrap:wrap}
+  .sess{flex:1;min-width:90px;background:var(--nuit);border:2px solid #2A3948;border-radius:12px;color:var(--blanc);
+    font-family:inherit;font-weight:900;font-size:18px;padding:14px;cursor:pointer}
+  .sess.actif{background:var(--jaune);color:var(--nuit);border-color:var(--jaune)}
+  .btn{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--nuit);border-radius:14px;padding:16px 18px;margin-bottom:12px;font-weight:700}
+  .btn b{display:block;font-size:19px;font-weight:900}
+  .btn small{display:block;font-size:13px;font-weight:500;opacity:.85;margin-top:2px}
+  .btn .ic{font-size:30px;flex:none}
+  .b-scores{background:var(--cdes)} .b-resti{background:var(--vert)} .b-resul{background:var(--orange)} .b-quiz{background:var(--jaune)}
+  .lien{color:var(--gris);font-size:12px;word-break:break-all;margin-top:6px}
+  footer{padding:14px 24px;color:var(--gris);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="rubalise"></div>
+<main>
+  <div class="sur">Sensibilisation sécurité · CDES × FOCAST</div>
+  <h1>Espace<br>animateur</h1>
+
+  <div class="bloc">
+    <h2>1 · Choisir la session (groupe de 40 élèves)</h2>
+    <div class="sessions" id="sessions"></div>
+  </div>
+
+  <div class="bloc">
+    <h2>2 · Ouvrir l'écran à projeter</h2>
+    <a class="btn b-scores" id="l-scores" href="scores.html?groupe=1"><span class="ic">📊</span><span><b>Classement en direct</b><small>Pendant le quiz — podium, progression et QR code à scanner</small></span></a>
+    <a class="btn b-resti" id="l-resti" href="restitution.html?groupe=1"><span class="ic">✅</span><span><b>Restitution</b><small>Après le quiz — le classement, le bilan, puis la correction question par question avec les % de réponses</small></span></a>
+  </div>
+
+  <div class="bloc">
+    <h2>3 · Le lien des élèves (celui du QR code)</h2>
+    <a class="btn b-quiz" id="l-quiz" href="quiz.html?groupe=1"><span class="ic">📱</span><span><b>Ouvrir le quiz élèves</b><small>Pour tester sur ton téléphone — les élèves passent par le QR de l'écran projeté</small></span></a>
+    <div class="lien" id="lien-quiz"></div>
+  </div>
+</main>
+<footer>Un clic sur une session met à jour tous les liens. Les données de chaque session restent séparées.</footer>
+<script>
+  const NB_SESSIONS = 3;
+  let session = new URLSearchParams(location.search).get("groupe") || "1";
+  function maj(){
+    document.querySelectorAll(".sess").forEach(b=>b.classList.toggle("actif", b.dataset.s === session));
+    ["scores","resti","quiz"].forEach(k=>{
+      const a = document.getElementById("l-"+k);
+      const page = {scores:"scores.html", resti:"restitution.html", quiz:"quiz.html"}[k];
+      a.href = page + "?groupe=" + session;
+    });
+    document.getElementById("lien-quiz").textContent = new URL("quiz.html?groupe=" + session, location.href).href;
+    history.replaceState(null, "", "?groupe=" + session);
+  }
+  const zone = document.getElementById("sessions");
+  for(let i=1;i<=NB_SESSIONS;i++){
+    const b = document.createElement("button");
+    b.className = "sess"; b.dataset.s = String(i); b.textContent = "Session " + i;
+    b.onclick = ()=>{ session = String(i); maj(); };
+    zone.appendChild(b);
+  }
+  const t = document.createElement("button");
+  t.className = "sess"; t.dataset.s = "9"; t.textContent = "Test (9)";
+  t.onclick = ()=>{ session = "9"; maj(); };
+  zone.appendChild(t);
+  maj();
+</script>
+</body>
+</html>
